@@ -10,11 +10,19 @@
   "author": "Apache Cordova Team",
   "license": "Apache-2.0",
   "dependencies": {
-    "cordova-plugin-device-motion": "^1.2.5"
+    "cordova-android": "^7.0.0",
+    "cordova-browser": "^5.0.3",
+    "cordova-plugin-device-motion": "^1.2.5",
+    "cordova-plugin-whitelist": "^1.3.3"
   },
   "cordova": {
     "plugins": {
-      "cordova-plugin-device-motion": {}
-    }
+      "cordova-plugin-device-motion": {},
+      "cordova-plugin-whitelist": {}
+    },
+    "platforms": [
+      "android",
+      "browser"
+    ]
   }
 }

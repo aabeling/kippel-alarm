@@ -40,6 +40,22 @@ var app = {
         receivedElement.setAttribute('style', 'display:block;');
 
         console.log('Received Event: ' + id);
+
+        /* from https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-device-motion/index.html */
+        var options = { frequency: 500 }; // Update every 3 seconds
+        var watchID = navigator.accelerometer.watchAcceleration(this.onSuccess, this.onError, options);
+    },
+
+    onSuccess: function(acceleration) {
+
+        document.getElementById('accelerationX').innerHTML = acceleration.x;
+        document.getElementById('accelerationY').innerHTML = acceleration.y;
+        document.getElementById('accelerationZ').innerHTML = acceleration.z;
+    },
+
+    onError: function() {
+
+        document.getElementById('accelerationX').innerHTML = "error";
     }
 };
 
