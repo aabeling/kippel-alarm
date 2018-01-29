@@ -208,16 +208,17 @@ var app = {
 
     sensorStatusChanged: function(status) {
 
-        document.getElementById("info").innerHTML = "sensor status: " + status;
+        var infoElement = document.getElementById("info");
 
         if (status == 0) {
             document.getElementById("stop").disabled = true;
+            infoElement.innerHTML = "sensor: off";
         } else if (status == 1) {
-            document.getElementById("info").innerHTML = "calibrating...";
+            infoElement.innerHTML = "sensor: calibrating";
         } else if (status == 2) {
             /* sensor is running */
+            infoElement.innerHTML = "sensor: running";
             document.getElementById("stop").disabled = false;
-            document.getElementById("info").innerHTML = "calibrated";
             document.getElementById("calibrate").disabled = false;
             document.getElementById("calibrate").innerHTML = "Recalibrate";
         }
