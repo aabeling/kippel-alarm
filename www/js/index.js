@@ -16,6 +16,66 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+
+var alarmSound = {
+
+    isPlaying: false,
+    mediaStarted: null,
+    mediaStopped: null,
+
+    /**
+     * Plays the alarm sound or does nothing if the sound is currently playing
+     */
+    playSound: function(mediaStarted, mediaStopped) {
+
+        if (this.isPlaying) {
+            console.log("already playing");
+            return;
+        }
+
+        this.mediaStarted = mediaStarted;
+        this.mediaStopped = mediaStopped;
+
+        var media = new Media(this.getMediaURL("sounds/sirene.mp3"),
+            this.mediaSuccess,
+            this.mediaError,
+            this.mediaStatus);
+
+        this.isPlaying = true;
+        media.play();
+    },
+
+    getMediaURL: function(s) {
+        if (cordova.platformId.toLowerCase() === "android") return "/android_asset/www/" + s;
+        return s;
+    },
+
+    mediaStatus: function(status) {
+
+        console.log("mediaStatus: " + status);
+
+        if (status == Media.MEDIA_STARTING) {
+            alarmSound.isPlaying = true;
+            alarmSound.mediaStarted();
+        } else if (status == Media.MEDIA_STOPPED) {
+            alarmSound.isPlaying = false;
+            alarmSound.mediaStopped();
+        }
+    },
+
+    mediaSuccess: function() {
+
+        console.log("mediaSuccess");
+        alarmSound.isPlaying = false;
+    },
+
+    mediaError: function(e) {
+
+        console.log("mediaError: " + e);
+        alarmSound.isPlaying = false;
+    }
+};
+
 var app = {
     // Application Constructor
     initialize: function() {
@@ -30,10 +90,14 @@ var app = {
         this.receivedEvent('deviceready');
 
         var self = this;
-        document.getElementById("soundtest").addEventListener("click", function() {
+        var soundTestButton = document.getElementById("soundtest");
+        soundTestButton.addEventListener("click", function() {
 
-            document.getElementById('alarm').innerHTML = "start playing sound";
-            self.playSound();
+            alarmSound.playSound(function() {
+                soundTestButton.disabled = true;
+            }, function() {
+                soundTestButton.disabled = false;
+            });
         });
     },
 
@@ -84,43 +148,16 @@ var app = {
         if (thresholdExceeded) {
 
             document.getElementById('alarm').setAttribute('class', 'thresholdExceeded');
-            app.playSound();
+            alarmSound.playSound(function() {
+                console.log("alarm");
+            }, function() {
+                console.log("alarm sound finished");
+            });
 
         } else {
             document.getElementById('alarm').setAttribute('class', 'thresholdOk');
         }
 
-    },
-
-    playSound: function() {
-
-        document.getElementById('alarm').innerHTML = "play sound";
-
-        var media = new Media(this.getMediaURL("sounds/sirene.mp3"),
-            this.mediaSuccess,
-            this.mediaError,
-            this.mediaStatus);
-        media.play();
-    },
-
-    getMediaURL: function(s) {
-        if (cordova.platformId.toLowerCase() === "android") return "/android_asset/www/" + s;
-        return s;
-    },
-
-    mediaSuccess: function() {
-
-        document.getElementById('alarm').innerHTML = "media played";
-    },
-
-    mediaError: function(e) {
-
-        document.getElementById('alarm').innerHTML = JSON.stringify(e);
-    },
-
-    mediaStatus: function(status) {
-
-        document.getElementById('alarm').innerHTML = "status: " + status;
     },
 
     onError: function() {
