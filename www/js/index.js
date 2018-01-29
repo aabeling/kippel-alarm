@@ -96,7 +96,7 @@ var app = {
 
         document.getElementById('alarm').innerHTML = "play sound";
 
-        var media = new Media(this.getMediaURL("sounds/hey.mp3"),
+        var media = new Media(this.getMediaURL("sounds/sirene.mp3"),
             this.mediaSuccess,
             this.mediaError,
             this.mediaStatus);
