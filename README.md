@@ -8,4 +8,6 @@ It was successfully tested with a samsung s4 mini and android 4.4.2.
 
 The device has been attached in a little box of matches under the chair.
 
-The app is built on https://build.phonegap.com/apps/2989296/builds and can be installed from there.
+I put the apk for the app into my dropbox: https://www.dropbox.com/s/8kcka6omw0mb965/kippel-alarm.apk?dl=0
+
+![QR code](static_qr_code_without_logo.jpg?raw=true "QR code")
