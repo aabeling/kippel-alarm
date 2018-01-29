@@ -22,6 +22,16 @@ var alarmSound = {
     isPlaying: false,
     mediaStarted: null,
     mediaStopped: null,
+    media: null,
+
+    initialize: function() {
+
+        this.media = new Media(this.getMediaURL("sounds/sirene.mp3"),
+            this.mediaSuccess,
+            this.mediaError,
+            this.mediaStatus);
+
+    },
 
     /**
      * Plays the alarm sound or does nothing if the sound is currently playing
@@ -36,13 +46,8 @@ var alarmSound = {
         this.mediaStarted = mediaStarted;
         this.mediaStopped = mediaStopped;
 
-        var media = new Media(this.getMediaURL("sounds/sirene.mp3"),
-            this.mediaSuccess,
-            this.mediaError,
-            this.mediaStatus);
-
         this.isPlaying = true;
-        media.play();
+        this.media.play();
     },
 
     getMediaURL: function(s) {
@@ -172,6 +177,8 @@ var app = {
     onDeviceReady: function() {
 
         this.receivedEvent('deviceready');
+        alarmSound.initialize();
+        cordova.plugins.backgroundMode.enable();
 
         var soundTestButton = document.getElementById("soundtest");
         soundTestButton.addEventListener("click", function() {
