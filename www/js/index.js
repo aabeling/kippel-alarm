@@ -76,6 +76,89 @@ var alarmSound = {
     }
 };
 
+var sensor = {
+
+    watchId: null,
+    /**
+     * 0: not calibrated,
+     * 1: calibrating
+     * 2: calibrated and running
+     */
+    status: 0,
+    onStatusChange: null,
+    onThresholdExceeded: null,
+    calibratedAcceleration: null,
+
+    initialize: function(onStatusChange, onThresholdExceeded) {
+
+        var options = { frequency: 500 };
+        sensor.watchId = navigator.accelerometer.watchAcceleration(
+            sensor.onSuccess,
+            sensor.onError,
+            options);
+
+        sensor.onStatusChange = onStatusChange;
+        sensor.onThresholdExceeded = onThresholdExceeded;
+        sensor.setStatus(0);
+    },
+
+    setStatus: function(status) {
+
+        sensor.status = status;
+        sensor.onStatusChange(status);
+    },
+
+    calibrate: function() {
+
+        console.log("calibrate");
+        sensor.setStatus(1);
+    },
+
+    stop: function() {
+
+        sensor.setStatus(0);
+    },
+
+    checkAcceleration: function(acceleration) {
+
+        var threshold = 0.3;
+
+        if (Math.abs(acceleration.x - sensor.calibratedAcceleration.x) > threshold) {
+            sensor.onThresholdExceeded();
+        }
+
+        if (Math.abs(acceleration.y - sensor.calibratedAcceleration.y) > threshold) {
+            sensor.onThresholdExceeded();
+        }
+
+        if (Math.abs(acceleration.z - sensor.calibratedAcceleration.z) > threshold) {
+            sensor.onThresholdExceeded();
+        }
+    },
+
+    /**
+     * Called by the navigator.accelerometer.
+     */
+    onSuccess: function(acceleration) {
+
+        if (sensor.status == 1) {
+            sensor.calibratedAcceleration = acceleration;
+            sensor.setStatus(2);
+            console.log("calibrated with " + JSON.stringify(acceleration));
+        } else if (sensor.status == 2) {
+            sensor.checkAcceleration(acceleration);
+        }
+    },
+
+    /**
+     * Called by the navigator.accelerometer.
+     */
+    onError: function() {
+
+        console.log("error from navigator.accelerometer");
+    }
+};
+
 var app = {
     // Application Constructor
     initialize: function() {
@@ -87,9 +170,9 @@ var app = {
     // Bind any cordova events here. Common events are:
     // 'pause', 'resume', etc.
     onDeviceReady: function() {
+
         this.receivedEvent('deviceready');
 
-        var self = this;
         var soundTestButton = document.getElementById("soundtest");
         soundTestButton.addEventListener("click", function() {
 
@@ -98,6 +181,48 @@ var app = {
             }, function() {
                 soundTestButton.disabled = false;
             });
+        });
+
+        var calibrateButton = document.getElementById("calibrate");
+        calibrateButton.addEventListener("click", function() {
+            calibrateButton.disabled = true;
+            setTimeout(function() {
+                sensor.calibrate();
+            }, 10000);
+        });
+
+        var stopButton = document.getElementById("stop");
+        stopButton.addEventListener("click", function() {
+            sensor.stop();
+        });
+
+        sensor.initialize(this.sensorStatusChanged, this.sensorThresholdExceeded);
+    },
+
+    sensorStatusChanged: function(status) {
+
+        document.getElementById("info").innerHTML = "sensor status: " + status;
+
+        if (status == 0) {
+            document.getElementById("stop").disabled = true;
+        } else if (status == 1) {
+            document.getElementById("info").innerHTML = "calibrating...";
+        } else if (status == 2) {
+            /* sensor is running */
+            document.getElementById("stop").disabled = false;
+            document.getElementById("info").innerHTML = "calibrated";
+            document.getElementById("calibrate").disabled = false;
+            document.getElementById("calibrate").innerHTML = "Recalibrate";
+        }
+    },
+
+    sensorThresholdExceeded: function() {
+
+        document.getElementById("info").innerHTML = "threshold exceeded";
+        alarmSound.playSound(function() {
+            /* intentionally left blank */
+        }, function() {
+            /* intentionally left blank */
         });
     },
 
@@ -109,61 +234,8 @@ var app = {
 
         listeningElement.setAttribute('style', 'display:none;');
         receivedElement.setAttribute('style', 'display:block;');
-
-        /* from https://cordova.apache.org/docs/en/latest/reference/cordova-plugin-device-motion/index.html */
-        var options = { frequency: 2000 };
-        var watchID = navigator.accelerometer.watchAcceleration(this.onSuccess, this.onError, options);
-    },
-
-    onSuccess: function(acceleration) {
-
-        document.getElementById('accelerationX').innerHTML = Math.abs(acceleration.x);
-        document.getElementById('accelerationY').innerHTML = acceleration.y;
-        document.getElementById('accelerationZ').innerHTML = acceleration.z;
-
-        var threshold = 0.3;
-        var thresholdExceeded = false;
-
-        if (Math.abs(acceleration.x) > threshold) {
-            document.getElementById('accelerationX').setAttribute('class', 'thresholdExceeded');
-            thresholdExceeded = true;
-        } else {
-            document.getElementById('accelerationX').setAttribute('class', 'thresholdOk');
-        }
-
-        if (Math.abs(acceleration.y) > threshold) {
-            document.getElementById('accelerationY').setAttribute('class', 'thresholdExceeded');
-            thresholdExceeded = true;
-        } else {
-            document.getElementById('accelerationY').setAttribute('class', 'thresholdOk');
-        }
-
-        if (Math.abs(acceleration.z) > threshold) {
-            document.getElementById('accelerationZ').setAttribute('class', 'thresholdExceeded');
-        } else {
-            document.getElementById('accelerationZ').setAttribute('class', 'thresholdOk');
-        }
-
-
-        if (thresholdExceeded) {
-
-            document.getElementById('alarm').setAttribute('class', 'thresholdExceeded');
-            alarmSound.playSound(function() {
-                console.log("alarm");
-            }, function() {
-                console.log("alarm sound finished");
-            });
-
-        } else {
-            document.getElementById('alarm').setAttribute('class', 'thresholdOk');
-        }
-
-    },
-
-    onError: function() {
-
-        document.getElementById('accelerationX').innerHTML = "error";
     }
+
 };
 
 app.initialize();
